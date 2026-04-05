@@ -13,7 +13,7 @@ public class ClinicalLabPatient {
     private final LocalTime collectionTime;
     private final List<ClinicalLabTest> completedTests;
 
-    // ── Constructor — records current date and time ──────────
+    // ── Constructor — records current date and time 
     public ClinicalLabPatient(String name, int age,
                                String sex, String timeLastMeal) {
         this.name           = name;
@@ -25,12 +25,12 @@ public class ClinicalLabPatient {
         this.completedTests = new ArrayList<>();
     }
 
-    // ── Add a completed test to this session ─────────────────
+    //  Add a completed test to this session 
     public void addTest(ClinicalLabTest test) {
         completedTests.add(test);
     }
 
-    // ── Getters ──────────────────────────────────────────────
+    //  Getters 
     public String    getName()           { return name; }
     public int       getAge()            { return age; }
     public String    getSex()            { return sex; }

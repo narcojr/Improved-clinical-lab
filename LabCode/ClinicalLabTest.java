@@ -9,7 +9,7 @@ public abstract class ClinicalLabTest {
 
     private static final DecimalFormat FORMAT = new DecimalFormat("0.##");
 
-    // ── Constructor ──────────────────────────────────────────
+    // ── Constructor
     public ClinicalLabTest(String testName, String unit) {
         this.testName      = testName;
         this.unit          = unit;
@@ -17,17 +17,17 @@ public abstract class ClinicalLabTest {
         this.resultValue   = 0.0;
     }
 
-    // ── Abstract — subclasses must implement ─────────────────
+    // ── Abstract — subclasses must implement
     public abstract String getReferenceRange(String sex);
     public abstract String interpret(double value, String sex);
 
-    // ── Template Method — do not override ────────────────────
+    // ── Template Method — do not override 
     public final String getInterpretation(String sex) {
         if (!resultEntered) return "—";
         return interpret(resultValue, sex);
     }
 
-    // ── Setters ──────────────────────────────────────────────
+    // ── Setters 
     public void setResult(double value) {
         this.resultValue   = value;
         this.resultEntered = true;
@@ -38,7 +38,7 @@ public abstract class ClinicalLabTest {
         this.resultEntered = false;
     }
 
-    // ── Getters ──────────────────────────────────────────────
+    // ── Getters
     public String  getTestName()      { return testName; }
     public String  getUnit()          { return unit; }
     public double  getResultValue()   { return resultValue; }

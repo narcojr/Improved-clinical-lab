@@ -61,7 +61,7 @@ public class ClinicalLabGUI extends JFrame {
     // TEST INITIALIZATION
     private void buildTests() {
 
-        // ── Standard Biochemistry ─────────────────────────────
+        // ── Standard Biochemistry 
         biochemTests.add(new BiochemistryTest("FBS",               "mg/dL",   74,    100));
         biochemTests.add(new BiochemistryTest("RBS",               "mg/dL",   70,    140));
         biochemTests.add(new BiochemistryTest("Total Cholesterol",  "mg/dL",  150,    200));
@@ -81,7 +81,7 @@ public class ClinicalLabGUI extends JFrame {
         biochemTests.add(new BiochemistryTest("Magnesium",         "mEq/L",    1.7,   2.2));   // NEW
         biochemTests.add(new BiochemistryTest("Phosphorus",        "mg/dL",    2.5,   4.5));   // NEW
 
-        // ── Cardiac & Enzyme Markers ──────────────────────────
+        // ── Cardiac & Enzyme Markers 
         cardiacTests.add(new CardiacMarkerTest("AST/SGOT",   "U/L",    46));
         cardiacTests.add(new CardiacMarkerTest("ALT/SGPT",   "U/L",    49));
         cardiacTests.add(new CardiacMarkerTest("Troponin I", "ng/mL",  0.04));  // NEW
@@ -89,14 +89,14 @@ public class ClinicalLabGUI extends JFrame {
         cardiacTests.add(new BiochemistryTest( "LDH",        "U/L",  140,  280));// NEW
         cardiacTests.add(new CardiacMarkerTest("CRP",        "mg/L",   1.0));   // NEW
 
-        // ── Liver Function Tests ──────────────────────────────
+        // ── Liver Function Tests 
         lftTests.add(new LiverFunctionTest("Total Bilirubin",  "mg/dL", 0.2, 1.2));  // NEW
         lftTests.add(new LiverFunctionTest("Direct Bilirubin", "mg/dL", 0.0, 0.3));  // NEW
         lftTests.add(new LiverFunctionTest("Albumin",          "g/dL",  3.5, 5.0));  // NEW
         lftTests.add(new LiverFunctionTest("Total Protein",    "g/dL",  6.0, 8.3));  // NEW
         lftTests.add(new LiverFunctionTest("ALP",              "U/L",   44,  147));  // NEW
 
-        // ── Thyroid Function Tests ─────────────────────────────
+        // ── Thyroid Function Tests 
         thyroidTests.add(new ThyroidTest("TSH",     "mIU/L", 0.4, 4.0,  ThyroidTest.ThyroidMarker.TSH)); // NEW
         thyroidTests.add(new ThyroidTest("Free T3", "pg/mL", 2.3, 4.2,  ThyroidTest.ThyroidMarker.T3));  // NEW
         thyroidTests.add(new ThyroidTest("Free T4", "ng/dL", 0.8, 1.8,  ThyroidTest.ThyroidMarker.T4));  // NEW
@@ -108,9 +108,8 @@ public class ClinicalLabGUI extends JFrame {
         allTests.addAll(thyroidTests);
     }
 
-    // ─────────────────────────────────────────────────────────
     // FRAME SETUP
-    // ─────────────────────────────────────────────────────────
+
     private void buildFrame() {
         setTitle("NUCOMP Diagnostic Corporation — Clinical Chemistry System");
         setSize(1350, 840);
@@ -126,9 +125,8 @@ public class ClinicalLabGUI extends JFrame {
         setVisible(true);
     }
 
-    // ─────────────────────────────────────────────────────────
+
     // HEADER PANEL
-    // ─────────────────────────────────────────────────────────
     private JPanel buildHeader() {
         JPanel header = new JPanel(new BorderLayout(10, 0));
         header.setBackground(DARK_NAVY);
@@ -162,9 +160,7 @@ public class ClinicalLabGUI extends JFrame {
         return header;
     }
 
-    // ─────────────────────────────────────────────────────────
     // TABBED PANE
-    // ─────────────────────────────────────────────────────────
     private JTabbedPane buildTabs() {
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Arial", Font.BOLD, 13));
@@ -173,9 +169,9 @@ public class ClinicalLabGUI extends JFrame {
         return tabs;
     }
 
-    // ─────────────────────────────────────────────────────────
+
     // NEW PATIENT TAB
-    // ─────────────────────────────────────────────────────────
+
     private JPanel buildNewPatientTab() {
         JPanel tab = new JPanel(new BorderLayout(8, 8));
         tab.setBackground(LIGHT_BLUE);
@@ -186,7 +182,7 @@ public class ClinicalLabGUI extends JFrame {
         return tab;
     }
 
-    // ── Patient Info Form ─────────────────────────────────────
+    // ── Patient Info Form 
     private JPanel buildPatientInfoPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 4, 10, 8));
         panel.setBackground(WHITE);
@@ -226,7 +222,7 @@ public class ClinicalLabGUI extends JFrame {
         return panel;
     }
 
-    // ── Test Selection — GridLayout with category headers ─────
+    // ── Test Selection — GridLayout with category headers 
     private JScrollPane buildTestScrollPane() {
         JPanel panel = new JPanel(new GridLayout(0, 3, 0, 2));
         panel.setBackground(WHITE);
@@ -290,7 +286,7 @@ public class ClinicalLabGUI extends JFrame {
         }
     }
 
-    // ── Action Buttons Bar ────────────────────────────────────
+    // ── Action Buttons Bar 
     private JPanel buildActionButtons() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         panel.setBackground(NAVY);
@@ -309,9 +305,9 @@ public class ClinicalLabGUI extends JFrame {
         return panel;
     }
 
-    // ─────────────────────────────────────────────────────────
+
     // PATIENT HISTORY TAB
-    // ─────────────────────────────────────────────────────────
+
     private JPanel buildHistoryTab() {
         JPanel tab = new JPanel(new BorderLayout(8, 8));
         tab.setBackground(LIGHT_BLUE);
@@ -373,9 +369,8 @@ public class ClinicalLabGUI extends JFrame {
         return tab;
     }
 
-    // ─────────────────────────────────────────────────────────
     // STATUS BAR
-    // ─────────────────────────────────────────────────────────
+
     private JPanel buildStatusBar() {
         JPanel bar = new JPanel(new BorderLayout());
         bar.setBackground(DARK_NAVY);
@@ -395,9 +390,7 @@ public class ClinicalLabGUI extends JFrame {
         return bar;
     }
 
-    // ═════════════════════════════════════════════════════════
     // BUSINESS LOGIC
-    // ═════════════════════════════════════════════════════════
 
     private void generateResult() {
         try {
@@ -570,9 +563,8 @@ public class ClinicalLabGUI extends JFrame {
         PatientRecord.getTableRows().forEach(historyModel::addRow);
     }
 
-    // ═════════════════════════════════════════════════════════
     // UI FACTORY HELPERS
-    // ═════════════════════════════════════════════════════════
+
 
     private JLabel label(String text) {
         JLabel lbl = new JLabel(text);
@@ -632,9 +624,7 @@ public class ClinicalLabGUI extends JFrame {
                 this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    // ═════════════════════════════════════════════════════════
     // ENTRY POINT
-    // ═════════════════════════════════════════════════════════
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {

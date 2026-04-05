@@ -9,7 +9,7 @@ public class ExcelExporter {
 
     private static final String OUTPUT_DIR = "lab_exports";
 
-    // ── Export a freshly-generated patient result ─────────────
+    // ── Export a freshly-generated patient result
     public static void exportAndOpen(ClinicalLabPatient patient) throws IOException {
         File file = makeFile(
             patient.getName().replaceAll("[^a-zA-Z0-9 ]", "")
@@ -64,7 +64,7 @@ public class ExcelExporter {
         openFile(file);
     }
 
-    // ── Private helpers ───────────────────────────────────────
+    // ── Private helpers
     private static File makeFile(String base) throws IOException {
         File dir = new File(OUTPUT_DIR);
         if (!dir.exists()) dir.mkdirs();

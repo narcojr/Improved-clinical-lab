@@ -9,7 +9,7 @@ public class PatientRecord {
     private static final String TEST_SEP   = ";;";
     private static final String FIELD_SEP  = "~";
 
-    // ── Save one patient session (append to file) ─────────────
+    // ── Save one patient session (append to file) 
     public static void save(ClinicalLabPatient p) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(DATA_FILE, true))) {
 
