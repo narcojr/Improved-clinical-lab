@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ClinicalLabGUI extends JFrame {
 
-    // ── Color Palette ─────────────────────────────────────────
+    //  Color Palette
     static final Color NAVY       = new Color(15,  52,  96);
     static final Color DARK_NAVY  = new Color(8,   30,  63);
     static final Color GOLD       = new Color(212, 175, 55);
@@ -20,7 +20,7 @@ public class ClinicalLabGUI extends JFrame {
     static final Color LIGHT_BLUE = new Color(230, 240, 255);
     static final Color ROW_ALT    = new Color(240, 246, 255);
 
-    // ── Fonts ─────────────────────────────────────────────────
+    // Fonts
     static final Font F_TITLE    = new Font("Arial", Font.BOLD,  28);
     static final Font F_SUBTITLE = new Font("Arial", Font.BOLD,  13);
     static final Font F_LABEL    = new Font("Arial", Font.BOLD,  13);
@@ -31,12 +31,12 @@ public class ClinicalLabGUI extends JFrame {
     static final Font F_MONO     = new Font("Monospaced", Font.PLAIN, 12);
     static final Font F_CAT      = new Font("Arial", Font.BOLD,  12);
 
-    // ── Patient Info Fields ───────────────────────────────────
+    //  Patient Info Fields 
     private JTextField      nameField, ageField, lastMealField;
     private JTextField      dateField, timeField;
     private JComboBox<String> sexBox;
 
-    // ── Test Lists (category grouping) ────────────────────────
+    //  Test Lists (category grouping)
     private final List<ClinicalLabTest> biochemTests  = new ArrayList<>();
     private final List<ClinicalLabTest> cardiacTests  = new ArrayList<>();
     private final List<ClinicalLabTest> lftTests      = new ArrayList<>();
@@ -47,20 +47,18 @@ public class ClinicalLabGUI extends JFrame {
     private final List<JCheckBox>  checkBoxes  = new ArrayList<>();
     private final List<JTextField> inputFields = new ArrayList<>();
 
-    // ── History Tab ───────────────────────────────────────────
+    //  History Tab 
     private JTable            historyTable;
     private DefaultTableModel historyModel;
 
-    // ═════════════════════════════════════════════════════════
+    // 
     public ClinicalLabGUI() {
         buildTests();
         buildFrame();
         loadHistory();
     }
 
-    // ─────────────────────────────────────────────────────────
     // TEST INITIALIZATION
-    // ─────────────────────────────────────────────────────────
     private void buildTests() {
 
         // ── Standard Biochemistry ─────────────────────────────
