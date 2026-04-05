@@ -39,7 +39,7 @@ public class PatientRecord {
         }
     }
 
-    // ── Load every raw row from file ──────────────────────────
+    // ── Load every raw row from file 
     public static List<String[]> loadAll() {
         List<String[]> rows = new ArrayList<>();
         File file = new File(DATA_FILE);
@@ -58,7 +58,7 @@ public class PatientRecord {
         return rows;
     }
 
-    // ── Rows formatted for the history JTable ─────────────────
+    // ── Rows formatted for the history JTable 
     // Returns: [Name, Age, Sex, Date, Time, "N test(s)"]
     public static List<String[]> getTableRows() {
         List<String[]> result = new ArrayList<>();
@@ -75,7 +75,7 @@ public class PatientRecord {
         return result;
     }
 
-    // ── Detailed formatted text for one record by index ───────
+    // ── Detailed formatted text for one record by index 
     public static String getDetailedResult(int index) {
         List<String[]> all = loadAll();
         if (index < 0 || index >= all.size()) return "Record not found.";

@@ -1,4 +1,3 @@
-
 public class BiochemistryTest extends ClinicalLabTest {
 
     protected double maleMin, maleMax;
