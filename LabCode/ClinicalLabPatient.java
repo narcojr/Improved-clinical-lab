@@ -1,4 +1,5 @@
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,45 +14,67 @@ public class ClinicalLabPatient {
     private final LocalTime collectionTime;
     private final List<ClinicalLabTest> completedTests;
 
-    // ── Constructor — records current date and time 
+    // ── Payment fields (set after payment dialog) ─────────────────
+    private String paymentMethod = "CASH";
+    private double totalAmount   = 0.0;
+    private double amountPaid    = 0.0;
+    private double change        = 0.0;
+
     public ClinicalLabPatient(String name, int age,
                                String sex, String timeLastMeal) {
         this.name           = name;
         this.age            = age;
         this.sex            = sex;
-        this.timeLastMeal   = timeLastMeal.trim().isEmpty() ? "N/A" : timeLastMeal.trim();
+        this.timeLastMeal   = (timeLastMeal == null || timeLastMeal.trim().isEmpty())
+                              ? "N/A" : timeLastMeal.trim();
         this.collectionDate = LocalDate.now();
         this.collectionTime = LocalTime.now().withNano(0);
         this.completedTests = new ArrayList<>();
     }
 
-    //  Add a completed test to this session 
-    public void addTest(ClinicalLabTest test) {
-        completedTests.add(test);
-    }
+    public void addTest(ClinicalLabTest test) { completedTests.add(test); }
 
-    //  Getters 
+    // ── Getters ───────────────────────────────────────────────────
     public String    getName()           { return name; }
     public int       getAge()            { return age; }
     public String    getSex()            { return sex; }
     public String    getTimeLastMeal()   { return timeLastMeal; }
     public LocalDate getCollectionDate() { return collectionDate; }
     public LocalTime getCollectionTime() { return collectionTime; }
+    public List<ClinicalLabTest> getCompletedTests() { return completedTests; }
 
-    public List<ClinicalLabTest> getCompletedTests() {
-        return completedTests;
+    public String getPaymentMethod() { return paymentMethod; }
+    public double getTotalAmount()   { return totalAmount; }
+    public double getAmountPaid()    { return amountPaid; }
+    public double getChange()        { return change; }
+
+    /** Sum of all test prices before any discount. */
+    public double getSubtotal() {
+        double sum = 0;
+        for (ClinicalLabTest t : completedTests) sum += t.getPrice();
+        return sum;
     }
+
+    /** Convenience: combine date + time into LocalDateTime. */
+    public LocalDateTime getCollectionDateTime() {
+        return LocalDateTime.of(collectionDate, collectionTime);
+    }
+
+    // ── Setters (payment) ─────────────────────────────────────────
+    public void setPaymentMethod(String m) { this.paymentMethod = m; }
+    public void setTotalAmount(double a)   { this.totalAmount   = a; }
+    public void setAmountPaid(double a)    { this.amountPaid    = a; }
+    public void setChange(double c)        { this.change        = c; }
 
     @Override
     public String toString() {
         return String.format(
-            "Name      : %s%n" +
-            "Age       : %d%n" +
-            "Sex       : %s%n" +
-            "Last Meal : %s%n" +
-            "Date      : %s%n" +
-            "Time      : %s",
-            name, age, sex, timeLastMeal, collectionDate, collectionTime
-        );
+            "Name         : %s%n" +
+            "Age          : %d%n" +
+            "Sex          : %s%n" +
+            "Last Meal    : %s%n" +
+            "Date         : %s%n" +
+            "Time         : %s",
+            name, age, sex, timeLastMeal, collectionDate, collectionTime);
     }
 }

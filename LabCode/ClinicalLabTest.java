@@ -1,54 +1,50 @@
-import java.text.DecimalFormat;
-
 public abstract class ClinicalLabTest {
 
-    protected String  testName;
-    protected String  unit;
-    protected double  resultValue;
-    protected boolean resultEntered;
+    protected final String testName;
+    protected final String unit;
+    protected Double result;   // null = not yet entered
 
-    private static final DecimalFormat FORMAT = new DecimalFormat("0.##");
-
-    // ── Constructor
     public ClinicalLabTest(String testName, String unit) {
-        this.testName      = testName;
-        this.unit          = unit;
-        this.resultEntered = false;
-        this.resultValue   = 0.0;
+        this.testName = testName;
+        this.unit     = unit;
+        this.result   = null;
     }
 
-    // ── Abstract — subclasses must implement
+    // ── Abstract methods — each subclass defines these ─────────────
     public abstract String getReferenceRange(String sex);
     public abstract String interpret(double value, String sex);
 
-    // ── Template Method — do not override 
-    public final String getInterpretation(String sex) {
-        if (!resultEntered) return "—";
-        return interpret(resultValue, sex);
-    }
+    // ── Concrete shared methods ────────────────────────────────────
+    public String getTestName()    { return testName; }
+    public String getUnit()        { return unit; }
+    public Double getResult()      { return result; }
 
-    // ── Setters 
-    public void setResult(double value) {
-        this.resultValue   = value;
-        this.resultEntered = true;
-    }
+    public void setResult(double value) { this.result = value; }
+    public void clearResult()           { this.result = null;  }
 
-    public void clearResult() {
-        this.resultValue   = 0.0;
-        this.resultEntered = false;
-    }
-
-    // ── Getters
-    public String  getTestName()      { return testName; }
-    public String  getUnit()          { return unit; }
-    public double  getResultValue()   { return resultValue; }
-    public boolean isResultEntered()  { return resultEntered; }
-
-    public String getDisplayName() {
-        return testName + " (" + unit + ")";
-    }
+    public boolean hasResult() { return result != null; }
 
     public String getFormattedResult() {
-        return resultEntered ? FORMAT.format(resultValue) : "";
+        if (result == null) return "N/A";
+        // Drop trailing .0 for whole numbers, keep decimals otherwise
+        return (result == Math.floor(result) && !Double.isInfinite(result))
+               ? String.valueOf(result.intValue())
+               : String.valueOf(result);
+    }
+
+    public String getInterpretation(String sex) {
+        return (result == null) ? "N/A" : interpret(result, sex);
+    }
+
+    // Override in subclasses that add a display prefix (e.g. [LFT])
+    public String getDisplayName() { return testName; }
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s %s  [%s]  → %s",
+            testName,
+            getFormattedResult(), unit,
+            getReferenceRange("MALE"),
+            result == null ? "N/A" : interpret(result, "MALE"));
     }
 }
