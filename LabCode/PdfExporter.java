@@ -158,7 +158,7 @@ public class PdfExporter {
         left.setPadding(12);
         left.addElement(new Paragraph("NUCOMP DIAGNOSTIC CORPORATION", F_COMPANY));
         left.addElement(new Paragraph(
-            "Clinical Chemistry Laboratory System  |  COMSCI", F_TAGLINE));
+            "Clinical Chemistry Laboratory System  |  NARCO VILLANDO JR.", F_TAGLINE));
         tbl.addCell(left);
 
         // Right — date + label
@@ -343,7 +343,7 @@ public class PdfExporter {
                 Element.ALIGN_CENTER, -5));
         Paragraph disc = new Paragraph(
             "This result is for laboratory and diagnostic purposes only. "
-          + "Please consult your physician for proper medical advice.", F_FOOTER);
+          + "Please consult your physician/doctor for proper medical advice.", F_FOOTER);
         disc.setAlignment(Element.ALIGN_CENTER);
         disc.setSpacingBefore(6);
         doc.add(disc);

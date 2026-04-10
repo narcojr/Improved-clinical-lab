@@ -184,7 +184,7 @@ public class ClinicalLabGUI extends JFrame {
         hdr.setBackground(DARK_NAVY);
         hdr.setBorder(BorderFactory.createEmptyBorder(14, 25, 14, 25));
 
-        JLabel company = new JLabel("NUCOMP DIAGNOSTIC CORPORATION");
+        JLabel company = new JLabel("NU BACOLOD DIAGNOSTIC CORPORATION");
         company.setFont(F_TITLE);
         company.setForeground(GOLD);
 
@@ -315,7 +315,7 @@ public class ClinicalLabGUI extends JFrame {
     /**
      * FBS (Fasting Blood Sugar) and RBS (Random Blood Sugar) are mutually
      * exclusive: FBS requires 8-12 h fasting while RBS is a non-fasting
-     * random sample. No lab orders both simultaneously.
+     * random sample.
      */
     private void wireMutualExclusion() {
         if (idxFBS < 0 || idxRBS < 0) return;
@@ -406,6 +406,7 @@ public class ClinicalLabGUI extends JFrame {
 
     // ══════════════════════════════════════════════════════════════
     // HISTORY TAB
+    // PATIENT HISTORY
     // ══════════════════════════════════════════════════════════════
     private JPanel buildHistoryTab() {
         JPanel tab = new JPanel(new BorderLayout(8, 8));
@@ -472,7 +473,7 @@ public class ClinicalLabGUI extends JFrame {
         bar.setBorder(BorderFactory.createEmptyBorder(4, 15, 4, 15));
 
         JLabel left = new JLabel(
-            "NUCOMP Clinical Chemistry Laboratory System  |  by COMSCI");
+            "NUCOMP Clinical Chemistry Laboratory System  |  NARCO VILLANDO JR.");
         left.setForeground(new Color(160, 190, 220));
         left.setFont(new Font("Arial", Font.PLAIN, 11));
 
@@ -591,7 +592,7 @@ public class ClinicalLabGUI extends JFrame {
         content.setBackground(WHITE);
         content.setBorder(BorderFactory.createEmptyBorder(12, 18, 8, 18));
 
-        // Test items grid
+        // Test items grid and prices
         content.add(sectionLabel("  TEST ITEMS  &  PRICES"));
         content.add(Box.createVerticalStrut(6));
 
@@ -1047,9 +1048,7 @@ public class ClinicalLabGUI extends JFrame {
             this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    // ══════════════════════════════════════════════════════════════
     // ENTRY POINT
-    // ══════════════════════════════════════════════════════════════
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
