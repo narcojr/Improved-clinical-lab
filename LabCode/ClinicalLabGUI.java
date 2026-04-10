@@ -164,7 +164,7 @@ public class ClinicalLabGUI extends JFrame {
     // FRAME SETUP
     // ══════════════════════════════════════════════════════════════
     private void buildFrame() {
-        setTitle("NUCOMP Diagnostic Corporation \u2014 Clinical Chemistry System");
+        setTitle("NUCOMP Diagnostic Corporation \u Clinical Chemistry System");
         setSize(1350, 840);
         setMinimumSize(new Dimension(1100, 700));
         setLocationRelativeTo(null);
