@@ -10,35 +10,7 @@ public class PatientRecord {
     private static final String TEST_SEP   = ";;";
     private static final String FIELD_SEP  = "~";
 
-    /*
-     * CSV column layout (v2 format — 11 columns, index 0-10):
-     *   0  name
-     *   1  age
-     *   2  sex
-     *   3  timeLastMeal
-     *   4  collectionDate
-     *   5  collectionTime
-     *   6  paymentMethod
-     *   7  totalAmount
-     *   8  amountPaid
-     *   9  change
-     *  10  tests  (TEST_SEP-delimited)
-     *
-     * Each test entry (FIELD_SEP-delimited, 8 fields):
-     *   0  testName
-     *   1  formattedResult
-     *   2  unit
-     *   3  referenceRange
-     *   4  interpretation
-     *   5  price
-     *   6  turnaroundHours
-     *   7  expectedReadyTime
-     *
-     * Old v1 format had 7 columns (0-6), tests at index 6 with 5 fields each.
-     * Both formats are handled on load.
-     */
-
-    // ── Save ──────────────────────────────────────────────────────
+    // ── Save Records of info 
     public static void save(ClinicalLabPatient p) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(DATA_FILE, true))) {
 
@@ -118,7 +90,8 @@ public class PatientRecord {
         return result;
     }
 
-    // ── Detailed Text for Swing History Viewer ────────────────────
+    // ── Detailed Text for Swing History Viewer, this is pain in the ass there are so many java resources that 
+    // to find on github and i have to learn to able to configure this shit
     public static String getDetailedResult(int index) {
         List<String[]> all = loadAll();
         if (index < 0 || index >= all.size()) return "Record not found.";

@@ -502,3 +502,5 @@ public class PdfExporter {
                ? arr[i].trim() : "N/A";
     }
 }
+
+// this is one of the repo that i study :  https://github.com/tieniber/PDF-Exporter/blob/master/javasource/pdf_exporter/lib/PDFInjector.java
