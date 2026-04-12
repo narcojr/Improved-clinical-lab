@@ -170,11 +170,20 @@ public class ClinicalLabGUI extends JFrame {
     // ================================================================
     // HEADER
     // ================================================================
-    private JPanel buildHeader() {
-        JPanel hdr = new JPanel(new BorderLayout(10, 0));
-        hdr.setBackground(DARK_NAVY);
-        hdr.setBorder(BorderFactory.createEmptyBorder(14, 25, 14, 25));
 
+    private static final String LOGO_FILE = "NULOGO.png";
+    private static final int    LOGO_SIZE = 80;        
+
+    private JPanel buildHeader() {
+        JPanel hdr = new JPanel(new BorderLayout(12, 0));
+        hdr.setBackground(DARK_NAVY);
+        hdr.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 25));
+
+        // ---- LEFT: logo ----
+        JLabel logoLabel = buildLogoLabel();
+        hdr.add(logoLabel, BorderLayout.WEST);
+
+        // ---- CENTER: company name + subtitle ----
         JLabel company = new JLabel("NUCOMP DIAGNOSTIC CORPORATION");
         company.setFont(F_TITLE);
         company.setForeground(GOLD);
@@ -184,24 +193,61 @@ public class ClinicalLabGUI extends JFrame {
         sub.setFont(F_SUB);
         sub.setForeground(WHITE);
 
-        JPanel left = new JPanel(new GridLayout(2, 1));
-        left.setBackground(DARK_NAVY);
-        left.add(company);
-        left.add(sub);
+        JPanel center = new JPanel(new GridLayout(2, 1, 0, 2));
+        center.setBackground(DARK_NAVY);
+        center.setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 14));
+        center.add(company);
+        center.add(sub);
+        hdr.add(center, BorderLayout.CENTER);
 
-        // Live clock
+        // ---- RIGHT: live clock ----
         JLabel clock = new JLabel(LocalTime.now().withNano(0).toString(),
                                   SwingConstants.RIGHT);
         clock.setFont(new Font("Arial", Font.BOLD, 22));
         clock.setForeground(LIGHT_GOLD);
-        Timer t = new Timer(1000, e -> clock.setText(
+        Timer clockTimer = new Timer(1000, e -> clock.setText(
             LocalTime.now().withNano(0).toString()));
-        t.setInitialDelay(0);
-        t.start();
-
-        hdr.add(left,  BorderLayout.WEST);
+        clockTimer.setInitialDelay(0);
+        clockTimer.start();
         hdr.add(clock, BorderLayout.EAST);
+
         return hdr;
+    }
+
+    private JLabel buildLogoLabel() {
+        // Try to load the image file
+        java.io.File imgFile = new java.io.File(LOGO_FILE);
+        if (imgFile.exists()) {
+            try {
+                java.awt.image.BufferedImage raw =
+                    javax.imageio.ImageIO.read(imgFile);
+                if (raw != null) {
+                    // Scale to LOGO_SIZE height, keep aspect ratio
+                    int h = LOGO_SIZE;
+                    int w = (int) ((double) raw.getWidth() / raw.getHeight() * h);
+                    java.awt.Image scaled = raw.getScaledInstance(
+                        w, h, java.awt.Image.SCALE_SMOOTH);
+                    JLabel logo = new JLabel(new ImageIcon(scaled));
+                    logo.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
+                    logo.setOpaque(false);
+                    return logo;
+                }
+            } catch (java.io.IOException ex) {
+                System.err.println("Logo load error: " + ex.getMessage());
+            }
+        }
+
+        // Fallback: show a styled text placeholder so the app still runs
+        JLabel fallback = new JLabel("NUCOMP", SwingConstants.CENTER);
+        fallback.setFont(new Font("Arial", Font.BOLD, 13));
+        fallback.setForeground(GOLD);
+        fallback.setOpaque(true);
+        fallback.setBackground(new Color(25, 65, 115));
+        fallback.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(GOLD, 1),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)));
+        fallback.setPreferredSize(new Dimension(80, LOGO_SIZE));
+        return fallback;
     }
 
     // ================================================================
@@ -304,11 +350,7 @@ public class ClinicalLabGUI extends JFrame {
         return scroll;
     }
 
-    /**
-     * FBS (Fasting Blood Sugar) and RBS (Random Blood Sugar) are mutually exclusive.
-     * FBS requires 8-12 hours fasting. RBS is a non-fasting random sample.
-     * No laboratory orders both on the same request.
-     */
+
     private void wireMutualExclusion() {
         if (idxFBS < 0 || idxRBS < 0) return;
         JCheckBox cbFBS = checkBoxes.get(idxFBS);
