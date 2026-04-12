@@ -8,10 +8,12 @@ public class CardiacMarkerTest extends ClinicalLabTest {
     }
 
     @Override
-    public String getReferenceRange(String sex) { return "< " + threshold; }
+    public String getReferenceRange(String sex) {
+        return "< " + threshold;
+    }
 
     @Override
     public String interpret(double value, String sex) {
-        return value > threshold ? "HIGH \u26A0" : "NORMAL";
+        return value > threshold ? "HIGH (!)" : "NORMAL";
     }
 }

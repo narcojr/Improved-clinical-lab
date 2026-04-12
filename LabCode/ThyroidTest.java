@@ -15,17 +15,20 @@ public class ThyroidTest extends BiochemistryTest {
         String base = super.interpret(value, sex);
         switch (marker) {
             case TSH:
-                if ("HIGH".equals(base)) return "HIGH \u2014 Suggests Hypothyroidism";
-                if ("LOW".equals(base))  return "LOW \u2014 Suggests Hyperthyroidism";
+                if ("HIGH".equals(base)) return "HIGH - Suggests Hypothyroidism";
+                if ("LOW".equals(base))  return "LOW - Suggests Hyperthyroidism";
                 break;
-            case T3: case T4:
-                if ("HIGH".equals(base)) return "HIGH \u2014 Suggests Hyperthyroidism";
-                if ("LOW".equals(base))  return "LOW \u2014 Suggests Hypothyroidism";
+            case T3:
+            case T4:
+                if ("HIGH".equals(base)) return "HIGH - Suggests Hyperthyroidism";
+                if ("LOW".equals(base))  return "LOW - Suggests Hypothyroidism";
                 break;
         }
         return "NORMAL";
     }
 
     @Override
-    public String getDisplayName() { return "[Thyroid] " + super.getDisplayName(); }
+    public String getDisplayName() {
+        return "[Thyroid] " + super.getDisplayName();
+    }
 }

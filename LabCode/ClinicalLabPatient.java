@@ -14,14 +14,14 @@ public class ClinicalLabPatient {
     private final LocalTime collectionTime;
     private final List<ClinicalLabTest> completedTests;
 
-    // ── Payment fields (set after payment dialog) ─────────────────
-    private String paymentMethod = "CASH";
-    private double totalAmount   = 0.0;
-    private double amountPaid    = 0.0;
-    private double change        = 0.0;
+    // Payment fields
+    private String paymentMethod    = "CASH";
+    private String paymentReference = "";
+    private double totalAmount      = 0.0;
+    private double amountPaid       = 0.0;
+    private double change           = 0.0;
 
-    public ClinicalLabPatient(String name, int age,
-                               String sex, String timeLastMeal) {
+    public ClinicalLabPatient(String name, int age, String sex, String timeLastMeal) {
         this.name           = name;
         this.age            = age;
         this.sex            = sex;
@@ -32,39 +32,45 @@ public class ClinicalLabPatient {
         this.completedTests = new ArrayList<>();
     }
 
-    public void addTest(ClinicalLabTest test) { completedTests.add(test); }
+    public void addTest(ClinicalLabTest test) {
+        completedTests.add(test);
+    }
 
-    // ── Getters ───────────────────────────────────────────────────
-    public String    getName()           { return name; }
-    public int       getAge()            { return age; }
-    public String    getSex()            { return sex; }
-    public String    getTimeLastMeal()   { return timeLastMeal; }
-    public LocalDate getCollectionDate() { return collectionDate; }
-    public LocalTime getCollectionTime() { return collectionTime; }
+    // Getters
+    public String    getName()             { return name; }
+    public int       getAge()              { return age; }
+    public String    getSex()              { return sex; }
+    public String    getTimeLastMeal()     { return timeLastMeal; }
+    public LocalDate getCollectionDate()   { return collectionDate; }
+    public LocalTime getCollectionTime()   { return collectionTime; }
+    public String    getPaymentMethod()    { return paymentMethod; }
+    public String    getPaymentReference() { return paymentReference; }
+    public double    getTotalAmount()      { return totalAmount; }
+    public double    getAmountPaid()       { return amountPaid; }
+    public double    getChange()           { return change; }
+
     public List<ClinicalLabTest> getCompletedTests() { return completedTests; }
 
-    public String getPaymentMethod() { return paymentMethod; }
-    public double getTotalAmount()   { return totalAmount; }
-    public double getAmountPaid()    { return amountPaid; }
-    public double getChange()        { return change; }
+    public LocalDateTime getCollectionDateTime() {
+        return LocalDateTime.of(collectionDate, collectionTime);
+    }
 
-    /** Sum of all test prices before any discount. */
     public double getSubtotal() {
         double sum = 0;
         for (ClinicalLabTest t : completedTests) sum += t.getPrice();
         return sum;
     }
 
-    /** Convenience: combine date + time into LocalDateTime. */
-    public LocalDateTime getCollectionDateTime() {
-        return LocalDateTime.of(collectionDate, collectionTime);
+    // Setters
+    public void setPaymentMethod(String m) {
+        this.paymentMethod = (m == null) ? "CASH" : m;
     }
-
-    // ── Setters (payment) ─────────────────────────────────────────
-    public void setPaymentMethod(String m) { this.paymentMethod = m; }
-    public void setTotalAmount(double a)   { this.totalAmount   = a; }
-    public void setAmountPaid(double a)    { this.amountPaid    = a; }
-    public void setChange(double c)        { this.change        = c; }
+    public void setPaymentReference(String r) {
+        this.paymentReference = (r == null) ? "" : r.trim();
+    }
+    public void setTotalAmount(double a) { this.totalAmount = a; }
+    public void setAmountPaid(double a)  { this.amountPaid  = a; }
+    public void setChange(double c)      { this.change      = c; }
 
     @Override
     public String toString() {

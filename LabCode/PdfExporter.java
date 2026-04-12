@@ -1,506 +1,487 @@
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.*;
-import com.itextpdf.text.pdf.draw.LineSeparator;
 import javax.swing.JOptionPane;
 import java.awt.Desktop;
 import java.io.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * PdfExporter - Pure Java PDF writer. NO external libraries needed.
+ * Compile: javac *.java
+ * Run:     java ClinicalLabGUI
+ */
 public class PdfExporter {
 
-    private static final String EXPORT_DIR = "results";
+    private static final String RESULTS_DIR = "results";
 
-    // ── iText Colors ──────────────────────────────────────────────
-    private static final BaseColor C_DARK_NAVY = new BaseColor(8,   30,  63);
-    private static final BaseColor C_NAVY      = new BaseColor(15,  52,  96);
-    private static final BaseColor C_GOLD      = new BaseColor(212, 175, 55);
-    private static final BaseColor C_LIGHT     = new BaseColor(230, 240, 255);
-    private static final BaseColor C_ROW_ALT   = new BaseColor(240, 246, 255);
-    private static final BaseColor C_HIGH_BG   = new BaseColor(255, 235, 235);
-    private static final BaseColor C_LOW_BG    = new BaseColor(255, 255, 210);
-    private static final BaseColor C_OK_BG     = new BaseColor(235, 255, 235);
+    // A4 page in PDF points (72pt = 1 inch)
+    private static final int PAGE_W = 595;
+    private static final int PAGE_H = 842;
+    private static final int MARGIN_LEFT = 50;
+    private static final int MARGIN_TOP  = 50;
 
-    // ── iText Fonts ───────────────────────────────────────────────
-    private static final Font F_COMPANY  = FontFactory.getFont(FontFactory.HELVETICA_BOLD,  14, C_GOLD);
-    private static final Font F_TAGLINE  = FontFactory.getFont(FontFactory.HELVETICA,         8, BaseColor.WHITE);
-    private static final Font F_DATE_HDR = FontFactory.getFont(FontFactory.HELVETICA_BOLD,   10, C_GOLD);
-    private static final Font F_SECTION  = FontFactory.getFont(FontFactory.HELVETICA_BOLD,   10, C_NAVY);
-    private static final Font F_COL_HDR  = FontFactory.getFont(FontFactory.HELVETICA_BOLD,    8, BaseColor.WHITE);
-    private static final Font F_BODY     = FontFactory.getFont(FontFactory.HELVETICA,          8, BaseColor.BLACK);
-    private static final Font F_BOLD     = FontFactory.getFont(FontFactory.HELVETICA_BOLD,    8, BaseColor.BLACK);
-    private static final Font F_SMALL    = FontFactory.getFont(FontFactory.HELVETICA,          7, BaseColor.GRAY);
-    private static final Font F_HIGH     = FontFactory.getFont(FontFactory.HELVETICA_BOLD,    8, new BaseColor(200,  0,  0));
-    private static final Font F_LOW      = FontFactory.getFont(FontFactory.HELVETICA_BOLD,    8, new BaseColor(160,120,  0));
-    private static final Font F_OK       = FontFactory.getFont(FontFactory.HELVETICA_BOLD,    8, new BaseColor(  0,130,  0));
-    private static final Font F_TOTAL    = FontFactory.getFont(FontFactory.HELVETICA_BOLD,   10, C_NAVY);
-    private static final Font F_FOOTER   = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, BaseColor.GRAY);
+    // ================================================================
+    // PUBLIC API
+    // ================================================================
 
-    // ═════════════════════════════════════════════════════════════
-    // this is freaking pain in the ass to make thanks god there's alot of resources in github
-    // PUBLIC ENTRY POINTS
-    // ═════════════════════════════════════════════════════════════
-
-    /** Export a live patient session and open the PDF. */
-    public static void exportAndOpen(ClinicalLabPatient patient) throws Exception {
-        ensureDir();
-        String path = buildPath(patient.getName(), patient.getCollectionDate().toString());
-        generateFromPatient(path, patient);
+    public static void exportAndOpen(ClinicalLabPatient p) throws Exception {
+        prepareDir();
+        String path = makeFilePath(p.getName(), p.getCollectionDate().toString());
+        byte[] pdf  = buildPdfFromPatient(p);
+        saveFile(path, pdf);
         openFile(new File(path));
     }
 
-    /** Export a saved history record by index and open the PDF. */
     public static void exportFromHistory(int index) throws Exception {
         List<String[]> all = PatientRecord.loadAll();
         if (index < 0 || index >= all.size())
-            throw new Exception("Record not found at index " + index + ".");
-        ensureDir();
-        String[] c    = all.get(index);
-        String   path = buildPath(
-            PatientRecord.formatTat(get(c, 0).isEmpty() ? "record" : get(c, 0)) + "_hist",
-            get(c, 4));
-        generateFromRaw(path, c);
+            throw new Exception("No record found at row " + index + ".");
+        prepareDir();
+        String[] row  = all.get(index);
+        String   path = makeFilePath(
+            PatientRecord.get(row, 0) + "_history",
+            PatientRecord.get(row, 4));
+        byte[] pdf = buildPdfFromRow(row);
+        saveFile(path, pdf);
         openFile(new File(path));
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // GENERATION — LIVE PATIENT
-    // ═════════════════════════════════════════════════════════════
+    // ================================================================
+    // BUILD PDF FROM LIVE PATIENT
+    // ================================================================
 
-    private static void generateFromPatient(String path, ClinicalLabPatient p)
-            throws Exception {
-        Document doc = new Document(PageSize.A4, 40, 40, 40, 50);
-        try (FileOutputStream fos = new FileOutputStream(path)) {
-            PdfWriter.getInstance(doc, fos);
-            doc.open();
+    private static byte[] buildPdfFromPatient(ClinicalLabPatient p) throws Exception {
+        SimplePdf pdf = new SimplePdf();
 
-            LocalDateTime cdt = p.getCollectionDateTime();
+        pdf.addBold("NUCOMP DIAGNOSTIC CORPORATION", 14);
+        pdf.addText("Clinical Chemistry Laboratory System", 10);
+        pdf.addText("Date: " + LocalDate.now(), 9);
+        pdf.addLine();
 
-            addLetterhead(doc);
-            addSectionTitle(doc, "PATIENT INFORMATION");
-            addPatientInfoTable(doc, p);
-            addSectionTitle(doc, "LABORATORY TEST RESULTS");
-            addLiveTestTable(doc, p, cdt);
-            addSectionTitle(doc, "PAYMENT SUMMARY");
-            addLivePaymentTable(doc, p);
-            addFooter(doc);
+        pdf.addBold("PATIENT INFORMATION", 11);
+        pdf.addText("Name         : " + p.getName(), 9);
+        pdf.addText("Age          : " + p.getAge(), 9);
+        pdf.addText("Sex          : " + p.getSex(), 9);
+        pdf.addText("Last Meal    : " + p.getTimeLastMeal(), 9);
+        pdf.addText("Date         : " + p.getCollectionDate(), 9);
+        pdf.addText("Time         : " + p.getCollectionTime(), 9);
+        pdf.addLine();
 
-        } catch (DocumentException de) {
-            throw new Exception("PDF error: " + de.getMessage(), de);
-        } finally {
-            if (doc.isOpen()) doc.close();
+        pdf.addBold("PAYMENT INFORMATION", 11);
+        pdf.addText("Payment Method : " + p.getPaymentMethod(), 9);
+        if (p.getPaymentReference() != null && !p.getPaymentReference().isEmpty()) {
+            pdf.addText("Reference No.  : " + p.getPaymentReference(), 9);
         }
-    }
+        pdf.addText("Total Due      : PhP " + fmt(p.getTotalAmount()), 9);
+        pdf.addText("Amount Paid    : PhP " + fmt(p.getAmountPaid()), 9);
+        pdf.addText("Change         : PhP " + fmt(p.getChange()), 9);
+        pdf.addLine();
 
-    // ═════════════════════════════════════════════════════════════
-    // GENERATION — RAW CSV ROW (history export)
-    // ═════════════════════════════════════════════════════════════
+        pdf.addBold("LABORATORY TEST RESULTS", 11);
+        pdf.addBlank();
+        pdf.addBold(
+            col("TEST NAME", 26) + col("RESULT", 14) +
+            col("REFERENCE", 20) + col("TAT", 8) +
+            col("READY BY", 18) + "INTERPRETATION", 8);
+        pdf.addDash();
 
-    private static void generateFromRaw(String path, String[] c) throws Exception {
-        boolean newFmt  = c.length >= 11;
-        int     testCol = newFmt ? 10 : (c.length >= 7 ? 6 : -1);
-
-        Document doc = new Document(PageSize.A4, 40, 40, 40, 50);
-        try (FileOutputStream fos = new FileOutputStream(path)) {
-            PdfWriter.getInstance(doc, fos);
-            doc.open();
-
-            addLetterhead(doc);
-
-            // Patient info
-            addSectionTitle(doc, "PATIENT INFORMATION");
-            PdfPTable info = new PdfPTable(4);
-            info.setWidthPercentage(100);
-            info.setWidths(new float[]{18, 32, 18, 32});
-            info.setSpacingBefore(4);
-            info.setSpacingAfter(8);
-            addInfoRow(info, "Name",      get(c, 0));
-            addInfoRow(info, "Age",       get(c, 1));
-            addInfoRow(info, "Sex",       get(c, 2));
-            addInfoRow(info, "Last Meal", get(c, 3));
-            addInfoRow(info, "Date",      get(c, 4));
-            addInfoRow(info, "Time",      get(c, 5));
-            doc.add(info);
-
-            // Tests
-            addSectionTitle(doc, "LABORATORY TEST RESULTS");
-            doc.add(buildRawTestTable(c, testCol));
-
-            // Payment (new format only)
-            if (newFmt) {
-                addSectionTitle(doc, "PAYMENT SUMMARY");
-                addRawPaymentTable(doc, c, testCol);
-            }
-
-            addFooter(doc);
-
-        } catch (DocumentException de) {
-            throw new Exception("PDF error: " + de.getMessage(), de);
-        } finally {
-            if (doc.isOpen()) doc.close();
-        }
-    }
-
-    // ═════════════════════════════════════════════════════════════
-    // SECTION BUILDERS
-    // ═════════════════════════════════════════════════════════════
-
-    private static void addLetterhead(Document doc) throws DocumentException {
-        PdfPTable tbl = new PdfPTable(2);
-        tbl.setWidthPercentage(100);
-        tbl.setWidths(new float[]{68, 32});
-        tbl.setSpacingAfter(12);
-
-        // Left — company name
-        PdfPCell left = new PdfPCell();
-        left.setBackgroundColor(C_DARK_NAVY);
-        left.setBorder(Rectangle.NO_BORDER);
-        left.setPadding(12);
-        left.addElement(new Paragraph("NUCOMP DIAGNOSTIC CORPORATION", F_COMPANY));
-        left.addElement(new Paragraph(
-            "Clinical Chemistry Laboratory System  |  NARCO VILLANDO JR.", F_TAGLINE));
-        tbl.addCell(left);
-
-        // Right — date + label
-        PdfPCell right = new PdfPCell();
-        right.setBackgroundColor(C_NAVY);
-        right.setBorder(Rectangle.NO_BORDER);
-        right.setPadding(12);
-        Paragraph dateP = new Paragraph(java.time.LocalDate.now().toString(), F_DATE_HDR);
-        dateP.setAlignment(Element.ALIGN_RIGHT);
-        right.addElement(dateP);
-        Paragraph recP = new Paragraph("OFFICIAL RECEIPT", F_TAGLINE);
-        recP.setAlignment(Element.ALIGN_RIGHT);
-        right.addElement(recP);
-        tbl.addCell(right);
-
-        doc.add(tbl);
-    }
-
-    private static void addPatientInfoTable(Document doc, ClinicalLabPatient p)
-            throws DocumentException {
-        PdfPTable tbl = new PdfPTable(4);
-        tbl.setWidthPercentage(100);
-        tbl.setWidths(new float[]{18, 32, 18, 32});
-        tbl.setSpacingBefore(4);
-        tbl.setSpacingAfter(8);
-        addInfoRow(tbl, "Name",      p.getName());
-        addInfoRow(tbl, "Age",       String.valueOf(p.getAge()));
-        addInfoRow(tbl, "Sex",       p.getSex());
-        addInfoRow(tbl, "Last Meal", p.getTimeLastMeal());
-        addInfoRow(tbl, "Date",      p.getCollectionDate().toString());
-        addInfoRow(tbl, "Time",      p.getCollectionTime().toString());
-        doc.add(tbl);
-    }
-
-    private static void addLiveTestTable(Document doc, ClinicalLabPatient p,
-                                          LocalDateTime cdt) throws DocumentException {
-        String[] hdrs   = {"Test", "Result", "Reference Range",
-                           "Status", "TAT", "Expected Ready"};
-        float[]  widths = {24f, 14f, 20f, 16f, 10f, 16f};
-
-        PdfPTable tbl = new PdfPTable(hdrs.length);
-        tbl.setWidthPercentage(100);
-        tbl.setWidths(widths);
-        tbl.setSpacingBefore(4);
-        tbl.setSpacingAfter(8);
-        tbl.setHeaderRows(1);
-
-        for (String h : hdrs) addColHeader(tbl, h);
-
-        boolean alt = false;
         for (ClinicalLabTest t : p.getCompletedTests()) {
-            BaseColor bg     = alt ? C_ROW_ALT : BaseColor.WHITE;
-            String    status = t.getInterpretation(p.getSex());
-            addBodyCell(tbl, t.getTestName(),                              bg, Element.ALIGN_LEFT);
-            addBodyCell(tbl, t.getFormattedResult() + " " + t.getUnit(),  bg, Element.ALIGN_CENTER);
-            addBodyCell(tbl, t.getReferenceRange(p.getSex()),              bg, Element.ALIGN_CENTER);
-            addStatusCell(tbl, status);
-            addBodyCell(tbl, t.getTurnaroundLabel(),                       bg, Element.ALIGN_CENTER);
-            addBodyCell(tbl, t.getExpectedReadyTime(cdt),                  bg, Element.ALIGN_CENTER);
-            alt = !alt;
+            pdf.addText(
+                col(t.getTestName(), 26) +
+                col(t.getFormattedResult() + " " + t.getUnit(), 14) +
+                col(t.getReferenceRange(p.getSex()), 20) +
+                col(t.getTurnaroundLabel(), 8) +
+                col(t.getExpectedReadyTime(p.getCollectionDateTime()), 18) +
+                t.getInterpretation(p.getSex()), 8);
+            pdf.addText("  Price: PhP " + fmt(t.getPrice()), 8);
+            pdf.addBlank();
         }
-        doc.add(tbl);
-    }
 
-    private static void addLivePaymentTable(Document doc, ClinicalLabPatient p)
-            throws DocumentException {
-        PdfPTable tbl = new PdfPTable(2);
-        tbl.setWidthPercentage(55);
-        tbl.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        tbl.setWidths(new float[]{60f, 40f});
-        tbl.setSpacingBefore(4);
-        tbl.setSpacingAfter(10);
-
-        // Itemized tests
-        boolean alt = false;
+        pdf.addDash();
+        pdf.addBold("ITEMIZED CHARGES", 10);
         for (ClinicalLabTest t : p.getCompletedTests()) {
-            BaseColor bg = alt ? C_ROW_ALT : BaseColor.WHITE;
-            addPayRow(tbl, t.getTestName(),
-                      String.format("PhP %,.2f", t.getPrice()), bg, false);
-            alt = !alt;
+            pdf.addText("  " + col(t.getTestName(), 32) + "PhP " + fmt(t.getPrice()), 9);
         }
-
-        // PhilHealth subsidy line
         if ("PHILHEALTH".equalsIgnoreCase(p.getPaymentMethod())) {
-            double subsidy = p.getSubtotal() - p.getTotalAmount();
-            addPayRow(tbl, "PhilHealth Subsidy",
-                      String.format("- PhP %,.2f", subsidy),
-                      new BaseColor(230, 255, 230), false);
+            double sub = p.getSubtotal() - p.getTotalAmount();
+            if (sub > 0)
+                pdf.addText("  " + col("PhilHealth Subsidy", 32) + "-PhP " + fmt(sub), 9);
         }
+        pdf.addDash();
+        pdf.addBold("  " + col("TOTAL DUE", 32) + "PhP " + fmt(p.getTotalAmount()), 10);
+        pdf.addLine();
 
-        // Divider
-        addSpanRow(tbl, "", new BaseColor(180, 195, 220), 1);
+        pdf.addBlank();
+        pdf.addBlank();
+        pdf.addText(
+            col("_______________________", 28) +
+            col("_______________________", 28) +
+            "_______________________", 9);
+        pdf.addText(
+            col("Medical Technologist", 28) +
+            col("Laboratory Head", 28) +
+            "Authorized Signatory", 9);
+        pdf.addLine();
+        pdf.addText("This result is for laboratory and diagnostic purposes only.", 8);
+        pdf.addText("Please consult your physician for proper medical advice.", 8);
 
-        addPayRow(tbl, "TOTAL DUE",
-                  String.format("PhP %,.2f", p.getTotalAmount()),
-                  C_LIGHT, true);
-        addPayRow(tbl, "Payment Method",
-                  p.getPaymentMethod(), BaseColor.WHITE, false);
-        addPayRow(tbl, "Amount Paid",
-                  String.format("PhP %,.2f", p.getAmountPaid()),
-                  BaseColor.WHITE, false);
-        addPayRow(tbl, "Change",
-                  String.format("PhP %,.2f", p.getChange()),
-                  BaseColor.WHITE, false);
-
-        doc.add(tbl);
+        return pdf.generate();
     }
 
-    private static PdfPTable buildRawTestTable(String[] c, int testCol)
-            throws DocumentException {
-        String[] hdrs   = {"Test", "Result", "Reference Range",
-                           "Status", "TAT", "Expected Ready"};
-        float[]  widths = {24f, 14f, 20f, 16f, 10f, 16f};
+    // ================================================================
+    // BUILD PDF FROM RAW CSV ROW (History export)
+    // ================================================================
 
-        PdfPTable tbl = new PdfPTable(hdrs.length);
-        tbl.setWidthPercentage(100);
-        tbl.setWidths(widths);
-        tbl.setSpacingBefore(4);
-        tbl.setSpacingAfter(8);
-        tbl.setHeaderRows(1);
+    private static byte[] buildPdfFromRow(String[] c) throws Exception {
+        int     tc        = PatientRecord.testCol(c);
+        boolean hasPay    = c.length >= 11;
+        boolean hasPayRef = c.length >= 12;
 
-        for (String h : hdrs) addColHeader(tbl, h);
+        SimplePdf pdf = new SimplePdf();
 
-        if (testCol >= 0 && testCol < c.length && !c[testCol].trim().isEmpty()) {
-            boolean alt = false;
-            for (String entry : c[testCol].split(";;")) {
-                String[]  f      = entry.split("~", -1);
-                boolean   nf     = f.length >= 8;
-                BaseColor bg     = alt ? C_ROW_ALT : BaseColor.WHITE;
-                String    status = f.length > 4 ? f[4] : "N/A";
-                String    tat    = nf ? PatientRecord.formatTat(f[6]) : "N/A";
-                String    ready  = nf ? f[7] : "N/A";
-                String    result = (f.length > 1 ? f[1] : "") + " " + (f.length > 2 ? f[2] : "");
-                addBodyCell(tbl, f.length > 0 ? f[0] : "N/A", bg, Element.ALIGN_LEFT);
-                addBodyCell(tbl, result.trim(),                 bg, Element.ALIGN_CENTER);
-                addBodyCell(tbl, f.length > 3 ? f[3] : "N/A", bg, Element.ALIGN_CENTER);
-                addStatusCell(tbl, status);
-                addBodyCell(tbl, tat,   bg, Element.ALIGN_CENTER);
-                addBodyCell(tbl, ready, bg, Element.ALIGN_CENTER);
-                alt = !alt;
+        pdf.addBold("NUCOMP DIAGNOSTIC CORPORATION", 14);
+        pdf.addText("Clinical Chemistry Laboratory System", 10);
+        pdf.addText("Date: " + LocalDate.now(), 9);
+        pdf.addLine();
+
+        pdf.addBold("PATIENT INFORMATION", 11);
+        pdf.addText("Name         : " + PatientRecord.get(c, 0), 9);
+        pdf.addText("Age          : " + PatientRecord.get(c, 1), 9);
+        pdf.addText("Sex          : " + PatientRecord.get(c, 2), 9);
+        pdf.addText("Last Meal    : " + PatientRecord.get(c, 3), 9);
+        pdf.addText("Date         : " + PatientRecord.get(c, 4), 9);
+        pdf.addText("Time         : " + PatientRecord.get(c, 5), 9);
+
+        if (hasPay) {
+            pdf.addLine();
+            pdf.addBold("PAYMENT INFORMATION", 11);
+            pdf.addText("Payment Method : " + PatientRecord.get(c, 6), 9);
+            if (hasPayRef) {
+                String ref = PatientRecord.get(c, 11);
+                if (!ref.isEmpty())
+                    pdf.addText("Reference No.  : " + ref, 9);
+            }
+            pdf.addText("Total Due      : PhP " + PatientRecord.get(c, 7), 9);
+            pdf.addText("Amount Paid    : PhP " + PatientRecord.get(c, 8), 9);
+            pdf.addText("Change         : PhP " + PatientRecord.get(c, 9), 9);
+        }
+
+        pdf.addLine();
+        pdf.addBold("LABORATORY TEST RESULTS", 11);
+        pdf.addBlank();
+        pdf.addBold(
+            col("TEST NAME", 26) + col("RESULT", 14) +
+            col("REFERENCE", 20) + col("TAT", 8) +
+            col("READY BY", 18) + "INTERPRETATION", 8);
+        pdf.addDash();
+
+        if (tc >= 0 && tc < c.length && !c[tc].trim().isEmpty()) {
+            for (String entry : c[tc].split(";;")) {
+                String[] f    = entry.split("~", -1);
+                boolean  has8 = f.length >= 8;
+                String result = (f.length > 1 ? f[1] : "") + " " + (f.length > 2 ? f[2] : "");
+                String ref    = f.length > 3 ? f[3] : "";
+                String interp = f.length > 4 ? f[4] : "";
+                String price  = f.length > 5 ? f[5] : "";
+                String tat    = has8 ? PatientRecord.formatTat(f[6]) : "";
+                String ready  = has8 ? f[7] : "";
+                pdf.addText(
+                    col(f.length > 0 ? f[0] : "", 26) +
+                    col(result.trim(), 14) +
+                    col(ref, 20) +
+                    col(tat, 8) +
+                    col(ready, 18) +
+                    interp, 8);
+                if (!price.isEmpty())
+                    pdf.addText("  Price: PhP " + price, 8);
+                pdf.addBlank();
             }
         }
-        return tbl;
+
+        pdf.addDash();
+        pdf.addBlank();
+        pdf.addBlank();
+        pdf.addText(
+            col("_______________________", 28) +
+            col("_______________________", 28) +
+            "_______________________", 9);
+        pdf.addText(
+            col("Medical Technologist", 28) +
+            col("Laboratory Head", 28) +
+            "Authorized Signatory", 9);
+        pdf.addLine();
+        pdf.addText("This result is for laboratory and diagnostic purposes only.", 8);
+        pdf.addText("Please consult your physician for proper medical advice.", 8);
+
+        return pdf.generate();
     }
 
-    private static void addRawPaymentTable(Document doc, String[] c, int testCol)
-            throws DocumentException {
-        PdfPTable tbl = new PdfPTable(2);
-        tbl.setWidthPercentage(55);
-        tbl.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        tbl.setWidths(new float[]{60f, 40f});
-        tbl.setSpacingBefore(4);
-        tbl.setSpacingAfter(10);
+    // ================================================================
+    // HELPERS
+    // ================================================================
 
-        if (testCol >= 0 && testCol < c.length && !c[testCol].trim().isEmpty()) {
-            boolean alt = false;
-            for (String entry : c[testCol].split(";;")) {
-                String[] f      = entry.split("~", -1);
-                String   tName  = f.length > 0 ? f[0] : "Unknown";
-                String   tPrice = f.length > 5
-                    ? String.format("PhP %s", f[5])
-                    : "N/A";
-                addPayRow(tbl, tName, tPrice, alt ? C_ROW_ALT : BaseColor.WHITE, false);
-                alt = !alt;
-            }
+    private static String fmt(double v) {
+        return String.format(Locale.US, "%,.2f", v);
+    }
+
+    /** Pad or truncate string to exactly n characters */
+    private static String col(String s, int n) {
+        if (s == null) s = "";
+        if (s.length() >= n) return s.substring(0, n);
+        StringBuilder sb = new StringBuilder(s);
+        while (sb.length() < n) sb.append(' ');
+        return sb.toString();
+    }
+
+    private static void prepareDir() throws Exception {
+        File d = new File(RESULTS_DIR);
+        if (!d.exists() && !d.mkdirs())
+            throw new Exception("Cannot create folder: " + d.getAbsolutePath());
+    }
+
+    private static String makeFilePath(String name, String date) {
+        String n = (name == null ? "record" : name).replaceAll("[^a-zA-Z0-9_-]", "_");
+        String d = (date == null ? "nodate" : date).replaceAll("[^a-zA-Z0-9_-]", "_");
+        return RESULTS_DIR + File.separator + n + "_" + d + ".pdf";
+    }
+
+    private static void saveFile(String path, byte[] data) throws Exception {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(path);
+            fos.write(data);
+            fos.flush();
+        } finally {
+            if (fos != null) try { fos.close(); } catch (IOException ignored) {}
         }
-
-        addSpanRow(tbl, "", new BaseColor(180, 195, 220), 1);
-        addPayRow(tbl, "Payment Method", get(c, 6),
-                  BaseColor.WHITE, false);
-        addPayRow(tbl, "TOTAL DUE",
-                  String.format("PhP %s", get(c, 7)), C_LIGHT, true);
-        addPayRow(tbl, "Amount Paid",
-                  String.format("PhP %s", get(c, 8)), BaseColor.WHITE, false);
-        addPayRow(tbl, "Change",
-                  String.format("PhP %s", get(c, 9)), BaseColor.WHITE, false);
-        doc.add(tbl);
     }
 
-    private static void addFooter(Document doc) throws DocumentException {
-        doc.add(new LineSeparator(0.5f, 100, BaseColor.LIGHT_GRAY,
-                Element.ALIGN_CENTER, -5));
-        Paragraph disc = new Paragraph(
-            "This result is for laboratory and diagnostic purposes only. "
-          + "Please consult your physician/doctor for proper medical advice.", F_FOOTER);
-        disc.setAlignment(Element.ALIGN_CENTER);
-        disc.setSpacingBefore(6);
-        doc.add(disc);
-
-        PdfPTable sig = new PdfPTable(3);
-        sig.setWidthPercentage(90);
-        sig.setHorizontalAlignment(Element.ALIGN_CENTER);
-        sig.setSpacingBefore(28);
-        addSigCell(sig, "Medical Technologist");
-        addSigCell(sig, "Laboratory Head");
-        addSigCell(sig, "Authorized Signatory");
-        doc.add(sig);
-    }
-
-    // ═════════════════════════════════════════════════════════════
-    // CELL / ROW HELPERS
-    // ═════════════════════════════════════════════════════════════
-
-    private static void addSectionTitle(Document doc, String text)
-            throws DocumentException {
-        Paragraph p = new Paragraph(text, F_SECTION);
-        p.setSpacingBefore(10);
-        p.setSpacingAfter(3);
-        doc.add(p);
-        doc.add(new LineSeparator(0.5f, 100, C_GOLD, Element.ALIGN_CENTER, -3));
-    }
-
-    private static void addColHeader(PdfPTable tbl, String text) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, F_COL_HDR));
-        cell.setBackgroundColor(C_NAVY);
-        cell.setPadding(5);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        tbl.addCell(cell);
-    }
-
-    private static void addInfoRow(PdfPTable tbl, String label, String value) {
-        PdfPCell lc = new PdfPCell(new Phrase(label + ":", F_BOLD));
-        lc.setBorder(Rectangle.NO_BORDER);
-        lc.setPadding(4);
-        tbl.addCell(lc);
-
-        PdfPCell vc = new PdfPCell(new Phrase(value, F_BODY));
-        vc.setBorder(Rectangle.NO_BORDER);
-        vc.setPadding(4);
-        tbl.addCell(vc);
-    }
-
-    private static void addBodyCell(PdfPTable tbl, String text,
-                                     BaseColor bg, int align) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, F_BODY));
-        cell.setBackgroundColor(bg);
-        cell.setPadding(4);
-        cell.setHorizontalAlignment(align);
-        tbl.addCell(cell);
-    }
-
-    private static void addStatusCell(PdfPTable tbl, String status) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBackgroundColor(statusBg(status));
-        cell.setPadding(4);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        cell.addElement(new Phrase(status, statusFont(status)));
-        tbl.addCell(cell);
-    }
-
-    private static void addPayRow(PdfPTable tbl, String label, String value,
-                                   BaseColor bg, boolean bold) {
-        Font f = bold ? F_TOTAL : F_BODY;
-        PdfPCell lc = new PdfPCell(new Phrase(label, f));
-        lc.setBackgroundColor(bg); lc.setPadding(5);
-        tbl.addCell(lc);
-
-        PdfPCell vc = new PdfPCell(new Phrase(value, f));
-        vc.setBackgroundColor(bg); vc.setPadding(5);
-        vc.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        tbl.addCell(vc);
-    }
-
-    private static void addSpanRow(PdfPTable tbl, String text,
-                                    BaseColor bg, int pad) {
-        PdfPCell cell = new PdfPCell(new Phrase(text));
-        cell.setColspan(2);
-        cell.setBackgroundColor(bg);
-        cell.setPadding(pad);
-        cell.setBorder(Rectangle.NO_BORDER);
-        tbl.addCell(cell);
-    }
-
-    private static void addSigCell(PdfPTable tbl, String label) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBorder(Rectangle.TOP);
-        cell.setBorderColorTop(C_NAVY);
-        cell.setBorderWidthTop(0.5f);
-        cell.setPadding(5);
-        Paragraph p = new Paragraph(label, F_SMALL);
-        p.setAlignment(Element.ALIGN_CENTER);
-        cell.addElement(p);
-        tbl.addCell(cell);
-    }
-
-    // ═════════════════════════════════════════════════════════════
-    // UTILITIES
-    // ═════════════════════════════════════════════════════════════
-
-    private static BaseColor statusBg(String s) {
-        if (s == null)             return BaseColor.WHITE;
-        if (s.startsWith("HIGH")) return C_HIGH_BG;
-        if (s.startsWith("LOW"))  return C_LOW_BG;
-        return C_OK_BG;
-    }
-
-    private static Font statusFont(String s) {
-        if (s == null)             return F_BODY;
-        if (s.startsWith("HIGH")) return F_HIGH;
-        if (s.startsWith("LOW"))  return F_LOW;
-        return F_OK;
-    }
-
-    private static void openFile(File file) {
+    private static void openFile(File f) {
         try {
             if (Desktop.isDesktopSupported()
                     && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
-                Desktop.getDesktop().open(file);
+                Desktop.getDesktop().open(f);
             } else {
                 JOptionPane.showMessageDialog(null,
-                    "PDF saved:\n" + file.getAbsolutePath(),
-                    "Export Successful", JOptionPane.INFORMATION_MESSAGE);
+                    "PDF saved to:\n" + f.getAbsolutePath(),
+                    "Exported", JOptionPane.INFORMATION_MESSAGE);
             }
-        } catch (IOException e) {
+        } catch (IOException ex) {
             JOptionPane.showMessageDialog(null,
-                "Saved but could not open automatically.\nLocation: "
-                + file.getAbsolutePath(),
-                "Export", JOptionPane.WARNING_MESSAGE);
+                "PDF saved. Open it from:\n" + f.getAbsolutePath(),
+                "Saved", JOptionPane.WARNING_MESSAGE);
         }
     }
 
-    private static void ensureDir() throws Exception {
-        File dir = new File(EXPORT_DIR);
-        if (!dir.exists() && !dir.mkdirs())
-            throw new Exception("Cannot create export directory: "
-                + dir.getAbsolutePath());
-    }
+    // ================================================================
+    // SIMPLE PDF ENGINE - no external dependencies
+    // ================================================================
 
-    private static String buildPath(String name, String date) {
-        return EXPORT_DIR + File.separator
-            + sanitize(name) + "_" + sanitize(date) + ".pdf";
-    }
+    static class SimplePdf {
 
-    private static String sanitize(String s) {
-        return (s == null ? "unknown" : s)
-            .replaceAll("[^a-zA-Z0-9_\\-]", "_");
-    }
+        // Entry types
+        private static final int TYPE_TEXT = 0;
+        private static final int TYPE_LINE = 1;
+        private static final int TYPE_BLANK = 2;
+        private static final int TYPE_DASH = 3;
 
-    private static String get(String[] arr, int i) {
-        return (arr != null && i < arr.length && arr[i] != null)
-               ? arr[i].trim() : "N/A";
+        private final List<Object[]> entries = new ArrayList<>();
+
+        /** Add a normal text line */
+        void addText(String text, float size) {
+            entries.add(new Object[]{clean(text), size, false, TYPE_TEXT});
+        }
+
+        /** Add a bold text line */
+        void addBold(String text, float size) {
+            entries.add(new Object[]{clean(text), size, true, TYPE_TEXT});
+        }
+
+        /** Add a horizontal separator line */
+        void addLine() {
+            entries.add(new Object[]{"", 4f, false, TYPE_LINE});
+        }
+
+        /** Add a blank spacing line */
+        void addBlank() {
+            entries.add(new Object[]{"", 5f, false, TYPE_BLANK});
+        }
+
+        /** Add a dashed divider line */
+        void addDash() {
+            entries.add(new Object[]{"", 4f, false, TYPE_DASH});
+        }
+
+        /**
+         * Remove characters unsafe inside PDF string literals.
+         * Only allow printable Latin-1 (32-255), escape parens and backslash.
+         */
+        private static String clean(String s) {
+            if (s == null) return "";
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < s.length(); i++) {
+                char ch = s.charAt(i);
+                if      (ch == '(')            sb.append("\\(");
+                else if (ch == ')')            sb.append("\\)");
+                else if (ch == '\\')           sb.append("\\\\");
+                else if (ch == '\r' || ch == '\n') sb.append(' ');
+                else if (ch >= 32 && ch < 256) sb.append(ch);
+                else                           sb.append(' ');
+            }
+            return sb.toString();
+        }
+
+        /**
+         * Render all entries into a complete, valid PDF 1.4 byte array.
+         *
+         * PDF coordinate origin = bottom-left corner.
+         * We begin near the top (y = PAGE_H - MARGIN_TOP) and decrease y per line.
+         *
+         * Object map:
+         *   1 0 obj  Catalog
+         *   2 0 obj  Pages
+         *   3 0 obj  Page  (media box, fonts, content ref)
+         *   4 0 obj  Content stream
+         *   5 0 obj  Font /F1 = Helvetica
+         *   6 0 obj  Font /F2 = Helvetica-Bold
+         */
+        byte[] generate() throws Exception {
+
+            StringBuilder cs = new StringBuilder();
+            float y = PAGE_H - MARGIN_TOP;
+
+            for (Object[] e : entries) {
+                String  text = (String)  e[0];
+                float   size = (Float)   e[1];
+                boolean bold = (Boolean) e[2];
+                int     type = (Integer) e[3];
+
+                if (type == TYPE_LINE) {
+                    // Thin horizontal rule
+                    y -= 4;
+                    cs.append(String.format(Locale.US,
+                        "0.4 w 0.5 0.5 0.5 RG %d %.2f m %d %.2f l S\n",
+                        MARGIN_LEFT, y, PAGE_W - MARGIN_LEFT, y));
+                    y -= 5;
+
+                } else if (type == TYPE_BLANK) {
+                    y -= size;
+
+                } else if (type == TYPE_DASH) {
+                    // Grey dashed text divider
+                    y -= 3;
+                    String dashes =
+                        "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " +
+                        "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -";
+                    cs.append(String.format(Locale.US,
+                        "BT /F1 7 Tf 0.7 0.7 0.7 rg %d %.2f Td (%s) Tj 0 0 0 rg ET\n",
+                        MARGIN_LEFT, y, dashes));
+                    y -= 9;
+
+                } else {
+                    // Normal text line
+                    y -= (size + 3);
+
+                    // If we hit the bottom margin, insert a simple page break marker
+                    if (y < 55) {
+                        y = PAGE_H - MARGIN_TOP - size - 3;
+                        // Draw a thin line to mark the logical break
+                        cs.append(String.format(Locale.US,
+                            "0.4 w 0.8 0.8 0.8 RG %d %.2f m %d %.2f l S\n",
+                            MARGIN_LEFT, y + size + 6, PAGE_W - MARGIN_LEFT, y + size + 6));
+                    }
+
+                    String font = bold ? "/F2" : "/F1";
+                    cs.append(String.format(Locale.US,
+                        "BT %s %.1f Tf %d %.2f Td (%s) Tj ET\n",
+                        font, size, MARGIN_LEFT, y, text));
+                }
+            }
+
+            // Convert content stream to bytes
+            byte[] csBytes = cs.toString().getBytes("ISO-8859-1");
+
+            // ---- Build PDF objects ----
+
+            String obj1 = "1 0 obj\n<</Type /Catalog /Pages 2 0 R>>\nendobj\n";
+
+            String obj2 = "2 0 obj\n<</Type /Pages /Kids [3 0 R] /Count 1>>\nendobj\n";
+
+            String obj3 =
+                "3 0 obj\n" +
+                "<</Type /Page\n" +
+                "  /Parent 2 0 R\n" +
+                "  /MediaBox [0 0 " + PAGE_W + " " + PAGE_H + "]\n" +
+                "  /Contents 4 0 R\n" +
+                "  /Resources <</Font <</F1 5 0 R /F2 6 0 R>>>>\n" +
+                ">>\n" +
+                "endobj\n";
+
+            String obj4head = "4 0 obj\n<</Length " + csBytes.length + ">>\nstream\n";
+            String obj4tail = "\nendstream\nendobj\n";
+
+            String obj5 =
+                "5 0 obj\n" +
+                "<</Type /Font /Subtype /Type1\n" +
+                "  /BaseFont /Helvetica\n" +
+                "  /Encoding /WinAnsiEncoding>>\n" +
+                "endobj\n";
+
+            String obj6 =
+                "6 0 obj\n" +
+                "<</Type /Font /Subtype /Type1\n" +
+                "  /BaseFont /Helvetica-Bold\n" +
+                "  /Encoding /WinAnsiEncoding>>\n" +
+                "endobj\n";
+
+            // ---- Assemble with byte-offset tracking ----
+
+            List<byte[]> parts   = new ArrayList<>();
+            int[]        offsets = new int[7]; // offsets[1..6]
+
+            byte[] hdr = "%PDF-1.4\n".getBytes("ISO-8859-1");
+            parts.add(hdr);
+            int pos = hdr.length;
+
+            byte[] b1 = obj1.getBytes("ISO-8859-1");
+            offsets[1] = pos; parts.add(b1); pos += b1.length;
+
+            byte[] b2 = obj2.getBytes("ISO-8859-1");
+            offsets[2] = pos; parts.add(b2); pos += b2.length;
+
+            byte[] b3 = obj3.getBytes("ISO-8859-1");
+            offsets[3] = pos; parts.add(b3); pos += b3.length;
+
+            byte[] b4h = obj4head.getBytes("ISO-8859-1");
+            offsets[4] = pos;
+            parts.add(b4h);   pos += b4h.length;
+            parts.add(csBytes); pos += csBytes.length;
+            byte[] b4t = obj4tail.getBytes("ISO-8859-1");
+            parts.add(b4t);   pos += b4t.length;
+
+            byte[] b5 = obj5.getBytes("ISO-8859-1");
+            offsets[5] = pos; parts.add(b5); pos += b5.length;
+
+            byte[] b6 = obj6.getBytes("ISO-8859-1");
+            offsets[6] = pos; parts.add(b6); pos += b6.length;
+
+            // ---- Cross-reference table ----
+
+            int xrefPos = pos;
+            StringBuilder xref = new StringBuilder();
+            xref.append("xref\n0 7\n");
+            xref.append("0000000000 65535 f \n");
+            for (int i = 1; i <= 6; i++)
+                xref.append(String.format("%010d 00000 n \n", offsets[i]));
+            xref.append("trailer\n<</Size 7 /Root 1 0 R>>\n");
+            xref.append("startxref\n").append(xrefPos).append("\n%%EOF\n");
+            parts.add(xref.toString().getBytes("ISO-8859-1"));
+
+            // ---- Merge all parts ----
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            for (byte[] part : parts) out.write(part);
+            return out.toByteArray();
+        }
     }
 }
-
-// this is one of the repo that i study :  https://github.com/tieniber/PDF-Exporter/blob/master/javasource/pdf_exporter/lib/PDFInjector.java
