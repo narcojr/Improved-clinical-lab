@@ -54,7 +54,7 @@ public class PdfExporter {
     private static byte[] buildPdfFromPatient(ClinicalLabPatient p) throws Exception {
         SimplePdf pdf = new SimplePdf();
 
-        pdf.addBold("NUCOMP DIAGNOSTIC CORPORATION", 14);
+        pdf.addBold("NUCOMP DIAGNOSTIC CORPORATION", 15);
         pdf.addText("Clinical Chemistry Laboratory System", 10);
         pdf.addText("Date: " + LocalDate.now(), 9);
         pdf.addLine();

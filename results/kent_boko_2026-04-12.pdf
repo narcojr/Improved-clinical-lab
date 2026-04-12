@@ -1,0 +1,79 @@
+%PDF-1.4
+1 0 obj
+<</Type /Catalog /Pages 2 0 R>>
+endobj
+2 0 obj
+<</Type /Pages /Kids [3 0 R] /Count 1>>
+endobj
+3 0 obj
+<</Type /Page
+  /Parent 2 0 R
+  /MediaBox [0 0 595 842]
+  /Contents 4 0 R
+  /Resources <</Font <</F1 5 0 R /F2 6 0 R>>>>
+>>
+endobj
+4 0 obj
+<</Length 2681>>
+stream
+BT /F2 15.0 Tf 50 774.00 Td (NUCOMP DIAGNOSTIC CORPORATION) Tj ET
+BT /F1 10.0 Tf 50 761.00 Td (Clinical Chemistry Laboratory System) Tj ET
+BT /F1 9.0 Tf 50 749.00 Td (Date: 2026-04-12) Tj ET
+0.4 w 0.5 0.5 0.5 RG 50 745.00 m 545 745.00 l S
+BT /F2 11.0 Tf 50 726.00 Td (PATIENT INFORMATION) Tj ET
+BT /F1 9.0 Tf 50 714.00 Td (Name         : kent boko) Tj ET
+BT /F1 9.0 Tf 50 702.00 Td (Age          : 19) Tj ET
+BT /F1 9.0 Tf 50 690.00 Td (Sex          : MALE) Tj ET
+BT /F1 9.0 Tf 50 678.00 Td (Last Meal    : 12:30) Tj ET
+BT /F1 9.0 Tf 50 666.00 Td (Date         : 2026-04-12) Tj ET
+BT /F1 9.0 Tf 50 654.00 Td (Time         : 11:01:59) Tj ET
+0.4 w 0.5 0.5 0.5 RG 50 650.00 m 545 650.00 l S
+BT /F2 11.0 Tf 50 631.00 Td (PAYMENT INFORMATION) Tj ET
+BT /F1 9.0 Tf 50 619.00 Td (Payment Method : CASH) Tj ET
+BT /F1 9.0 Tf 50 607.00 Td (Total Due      : PhP 150.00) Tj ET
+BT /F1 9.0 Tf 50 595.00 Td (Amount Paid    : PhP 500.00) Tj ET
+BT /F1 9.0 Tf 50 583.00 Td (Change         : PhP 350.00) Tj ET
+0.4 w 0.5 0.5 0.5 RG 50 579.00 m 545 579.00 l S
+BT /F2 11.0 Tf 50 560.00 Td (LABORATORY TEST RESULTS) Tj ET
+BT /F2 8.0 Tf 50 544.00 Td (TEST NAME                 RESULT        REFERENCE           TAT     READY BY          INTERPRETATION) Tj ET
+BT /F1 7 Tf 0.7 0.7 0.7 rg 50 541.00 Td (- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -) Tj 0 0 0 rg ET
+BT /F1 8.0 Tf 50 521.00 Td (FBS                       567 mg/dL     74.0 - 100.0        2 hrs   04/12/2026 13:01  HIGH) Tj ET
+BT /F1 8.0 Tf 50 510.00 Td (  Price: PhP 150.00) Tj ET
+BT /F1 7 Tf 0.7 0.7 0.7 rg 50 502.00 Td (- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -) Tj 0 0 0 rg ET
+BT /F2 10.0 Tf 50 480.00 Td (ITEMIZED CHARGES) Tj ET
+BT /F1 9.0 Tf 50 468.00 Td (  FBS                             PhP 150.00) Tj ET
+BT /F1 7 Tf 0.7 0.7 0.7 rg 50 465.00 Td (- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -) Tj 0 0 0 rg ET
+BT /F2 10.0 Tf 50 443.00 Td (  TOTAL DUE                       PhP 150.00) Tj ET
+0.4 w 0.5 0.5 0.5 RG 50 439.00 m 545 439.00 l S
+BT /F1 9.0 Tf 50 412.00 Td (_______________________     _______________________     _______________________) Tj ET
+BT /F1 9.0 Tf 50 400.00 Td (Medical Technologist        Laboratory Head             Authorized Signatory) Tj ET
+0.4 w 0.5 0.5 0.5 RG 50 396.00 m 545 396.00 l S
+BT /F1 8.0 Tf 50 380.00 Td (This result is for laboratory and diagnostic purposes only.) Tj ET
+BT /F1 8.0 Tf 50 369.00 Td (Please consult your physician for proper medical advice.) Tj ET
+
+endstream
+endobj
+5 0 obj
+<</Type /Font /Subtype /Type1
+  /BaseFont /Helvetica
+  /Encoding /WinAnsiEncoding>>
+endobj
+6 0 obj
+<</Type /Font /Subtype /Type1
+  /BaseFont /Helvetica-Bold
+  /Encoding /WinAnsiEncoding>>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000056 00000 n 
+0000000111 00000 n 
+0000000250 00000 n 
+0000002981 00000 n 
+0000003080 00000 n 
+trailer
+<</Size 7 /Root 1 0 R>>
+startxref
+3184
+%%EOF
